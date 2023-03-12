@@ -60,6 +60,7 @@ def fasterInsertion(A):                 #faster because does less comparaison us
     return time.perf_counter()-timeStart
 
 
+
 def mergeSort(A):
     if len(A) <= 1:
         return A
@@ -88,7 +89,6 @@ def mergeSort(A):
 
 
 
-
 def quickSort(A, pivot):
     if A == []: 
         return []
@@ -100,9 +100,39 @@ def quickSort(A, pivot):
 
 
 
-def testFunction(str, rand):                  #test time taken by the algorithm given by str in the worst case
+
+def callF(str, times, x, A, i):
+            currTime = 0
+            for t in range(curveAveraging):
+                B = A[:]
+                currTime += str(B)
+            times.append(currTime/curveAveraging)                #add the time taken returned to the list of times
+            x.append(arraySize-i)               #for this size of array
+            isSorted(B)                         #check if array correctly sorted
+
+
+
+def callRecF(str, times, x, A, i):
+            currTime = 0
+            for t in range(curveAveraging):
+                B = A[:]
+                timeStart = time.perf_counter()
+                B = str(B)
+                currTime += time.perf_counter()-timeStart
+            times.append(currTime/curveAveraging)
+            x.append(i)
+            isSorted(B)
+
+
+
+
+
+def testFunction(str, rand):                  #test time taken by the algorithm given by str in the worst/random case
     times = []
+    timesP = []
     x = []
+    xP = []
+    currTime = 0
     A = array('i')
     
     if str == insertionSort or str == bubbleSort or str == fasterInsertion:
@@ -113,10 +143,9 @@ def testFunction(str, rand):                  #test time taken by the algorithm 
                 for j in range(pas):                #construct worst case array entry for insertion sort or bubble sort (reversed sorted)
                     A.append(i-j)                   #construct the array by adding pas * element for each test of this algorithm
             
-            B = A[:]
-            times.append(str(B))                #add the time taken returned to the list of time
-            x.append(arraySize-i)               #for this size of array
-            isSorted(B)                         #check if array correctly sorted
+            callF(str, times, x, A, i)
+
+
 
     elif str == mergeSort:
         A.append(1)
@@ -140,54 +169,48 @@ def testFunction(str, rand):                  #test time taken by the algorithm 
                         index1 = A.index(1)
                         index2 = A.index(2)
             
-            B = A[:]
-            timeStart = time.perf_counter()
-            B = str(B)
-            times.append(time.perf_counter()-timeStart)
-            x.append(j)
-            isSorted(B)
+            callRecF(str, times, x, A, j)
+            callRecF(lambda arr : np.sort(arr, kind=(str.__name__).lower()), timesP, xP, A, j)
     
 
+
     elif str == quickSort:
+
         for i in range(0, arraySize, pas):  #worst case is array already sorted
             if rand:
                 A += randArray(pas)
             else:
                 for j in range(pas):  #construct worst case array for quicksort
                     A.append(i+j)
-
-            B = A[:]
+            
             if rand:
                 pivot = A[randint(0, len(A)-1)]    #for average case pivot is a random element of the array (tends to avoid worst case results)
             else:    
                 pivot = A[0]        #worst pivot for worst case is the first element of the array
 
-            timeStart = time.perf_counter()
-            B = str(B, pivot)
-            times.append(time.perf_counter()-timeStart)
-            x.append(i)
-            isSorted(B)
+            callRecF(lambda arr : str(arr, pivot), times, x, A, i)
+            callRecF(lambda arr : np.sort(arr, kind=(str.__name__).lower()), timesP, xP, A, i)
+
+
 
     elif str == sorted:
-        for i in range(arraySize, 0, -pas):      
+        for i in range(arraySize, 0, -pas):
             if rand:
                 A += randArray(pas)                 #average case, with random array
             else:
                 for j in range(pas):                #construct reversed sorted array (worst case) for timsort (algorithm used by sorted function)
                     A.append(i-j)                  
             
-            B = A[:]
-            timeStart = time.perf_counter()
-            B = sorted(B)
-            times.append(time.perf_counter()-timeStart)
-            x.append(arraySize-i)
-            isSorted(B)
+            callRecF(str, times, x, A, arraySize-i)
+            callRecF(lambda arr : np.sort(arr, kind=(str.__name__).lower()), timesP, xP, A, arraySize-i)
+            
 
-    return times, x
+    return times, x, timesP, xP
 
 
 
-
+'''
+Not needed anymore
 def test(str, rand):        #test the algorithm defined by str in the average case (rand array) or worst case
     times = []
     moy = []
@@ -196,29 +219,32 @@ def test(str, rand):        #test the algorithm defined by str in the average ca
         moy, x = testFunction(str, rand)
         times = [times[i] + moy[i] for i in range(len(moy))]
     return [elem/curveAveraging for elem in times], x
+'''
 
 
 
 
-
-
-def polyPlot(x, times, win, st):
+def polyCalc(x, times, win):
     poly = np.polyfit(x, times, 2)      #calculate then plot the polynomial fit of the (x, times) data
     polyCurve = np.poly1d(poly)
 
     win.plot(x, times, 'r')
     win.plot(x, polyCurve(x), 'b', linewidth=1)
 
+
+
+def infoPlot(win, st, legend):
     win.set_xlabel('Array size', fontsize=10)
     win.set_ylabel('Execution time of ' + st, fontsize=10)
     win.set_title('Execution time according to the size of the array of ' + st, fontsize=10)
-    win.legend([st, 'Polynomial fit'], fontsize=10) # + str(poly[0]) + 'x^2' can be added to show the x^2 coefficient on each graph
-
+    win.legend([st, legend], fontsize=10) # + str(poly[0]) + 'x^2' can be added to show the x^2 coefficient on each graph
 
     
-arraySize = 503             #data entry -- can be modified according to the needs --
+
+
+arraySize = 503             #data entries -- can be modified according to the needs --
 pas = 20
-curveAveraging = 10
+curveAveraging = 5
 rand = False                 #rand set to False => worst case, to True => average case (random array)
 
 #print(sys.getrecursionlimit())
@@ -229,7 +255,8 @@ rand = False                 #rand set to False => worst case, to True => averag
 
 
 figure, ax = plt.subplots()         #algorithm comparaison figure
-fig, axs = plt.subplots(3, 2, sharey=True)  # each subplot share the same y axis
+fig, axs = plt.subplots(3, 2, sharey=True, constrained_layout=True)  # each subplot share the same y axis
+figP, axsP = plt.subplots(2, 2, sharey=True)  #comparaison with same algorithm from python (numpy.sort)
 
 fig.tight_layout()
 fig.subplots_adjust()
@@ -240,48 +267,31 @@ fig.subplots_adjust()
 #indirect time (occuped processor...)
 
 #2 figure are then showed, 1 for the comparaison of each function and the other one for a
-#comparaison between the curve given and the 2nd degree polynomial approximation of it
-
-
-times, x = test(bubbleSort, rand)
-ax.plot(x, times, 'r')              #plot the dataset to the comparative figure
-
-polyPlot(x, times, axs[0,0], 'Bubble Sort') #calculate polynomial fit of (x, times) dataset and plot it on axs[0,0] (subplot 0, 0 of axis axs)
+#comparaison between the curve given and the 2nd degree polynomial approximation of it*
 
 
 
-times, x = test(insertionSort, rand)
-ax.plot(x, times, 'b')
-
-polyPlot(x, times, axs[0,1], 'Insertion Sort')
-
-
-
-times, x = test(fasterInsertion, rand)
-ax.plot(x, times, 'c')
-
-polyPlot(x, times, axs[1, 0], 'Faster Insertion Sort')
+functs = [bubbleSort, insertionSort, fasterInsertion, sorted, quickSort, mergeSort]
+functNames = ['Bubble Sort', 'Insertion Sort', 'Faster Insertion Sort', 'TimSort', 'Quick Sort', 'Merge Sort']
+colors = ['r', 'b', 'c', 'm', 'g', 'k']
 
 
 
-times, x = test(sorted, rand)
-ax.plot(x, times, 'm')
+for i in range(len(functs)):
+    times, x, timesP, xP = testFunction(functs[i], rand)
+    ax.plot(x, times, colors[i])              #plot the dataset to the all comparative figure
 
-polyPlot(x, times, axs[1, 1], 'TimSort')
+    if i > 2:
+        axsP[(i-3)//2, (i-3)%2].plot(x, times, 'r')         #comparative figure with python equivalent function
+        axsP[(i-3)//2, (i-3)%2].plot(list(xP), list(timesP), 'b', linewidth=1)        #only works with merge, quick, timsort because np.sort only allows these
+        infoPlot(axsP[(i-3)//2, (i-3)%2], functNames[i], 'Python Built-In Equivalent')
+        figP.suptitle('Comparison of each algorithm with the equivalent one from numpy')
+    
+    polyCalc(x, times, axs[i//2,i%2]) #calculate polynomial fit of (x, times) dataset and plot it on axs[0,0] (subplot 0, 0 of axis axs)
+    infoPlot(axs[i//2,i%2], functNames[i], 'Polynomial fit')
+    fig.suptitle('Polynomial fit of each functions to determine time complexity constantes', verticalalignment='bottom')
 
 
-
-times, x = test(quickSort, rand)
-ax.plot(x, times, 'g')
-
-polyPlot(x, times, axs[2, 0], 'Quick Sort')
-
-
-
-times, x = test(mergeSort, rand)
-ax.plot(x, times, 'k')
-
-polyPlot(x, times, axs[2, 1], 'Merge Sort')
 
 
 #plot info for comparaison figure
@@ -290,3 +300,66 @@ ax.set_ylabel('Execution time of the function used')
 ax.set_title('Comparison of the execution time according to the size of the array of several sorting algorithms')
 ax.legend(['Bubble Sort','Insertion Sort', 'Faster Insertion Sort', 'TimSort (python sorted function)', 'Quick Sort', 'Merge Sort'])
 plt.show()
+
+
+
+
+
+'''
+Pour modifier les constantes d'entrées, voir ligne 219
+
+
+Les complexité dans le pire cas et dans le cas moyens peuvent être vérifiés avec les observations des courbes
+pour des tailles suffisament grandes, comme O(n^2) pour le bubble/insertion sort etc
+
+Les constantes de temps peuvent êtres vues avec l'approximation polynomiale
+
+Les fonctions supportés par numpy.sort ont été comparées avec celles définies ci-dessus, et l'on remarque
+assez facilement que malgré que ce soit le même algorithme utilisé, celles de python sont plus optimisées
+
+
+- Insertion Sort :
+Pire des cas : O(n^2)
+Cas moyen : O(n^2)
+
+Efficace pour des tableau petits ou des tableau déjà partiellement triées. 
+Il devient inefficace pour des plus grandes tailles de tableau, en raison de sa complexité en n^2.
+Il est cependant plus efficace que le Bubble sort.
+
+
+- Bubble Sort :
+Pire des cas : O(n^2)
+Cas moyen : O(n^2)
+
+Comme le tri par insertion, c'est un algorithme simple et facile à implémenter,
+mais sa complexité quadratique en fait un algorithme très inefficace pour des tailles de tableau importantes. 
+
+
+- Merge Sort :
+Pire des cas : O(n*log(n))
+Cas moyen : O(n*log(n))
+
+Algorithme efficace en terme de temps d'execution pour trier des tableaux de grandes tailles.
+Il est cependant très mauvais en complexité spaciale car sa nature recursive lui demande de stocker plusieurs instances du tableau
+selon l'étape courante.
+
+
+- Quick Sort :
+Pire des cas : O(n^2)
+Cas moyen : O(n*log(n))
+
+Utilisant Divide and conquer comme merge sort, c'est un algorithme efficace en temps dans le cas moyen. 
+De même, il est mauvais dans la complexité spaciale (légèrement meilleur)
+Malgré la complexité en O(n^2) dans le pire des cas, il devrait être en pratique souvent plus rapide que le merge sort pour le cas moyen.
+Dans le pire des cas, il reste plus rapide que le tri par insertion.
+
+
+- Timsort :
+Pire des cas : ~= O(n*log(n))
+Cas moyen : ~= O(n*log(n))
+
+((ou respectivement 1.5nH+O(n) et O(n+nH) avec H est l'entropie des distributions de parties de tableaux)
+Voir plus dans l'étude 'On the Worst-Case Complexity of TimSort')
+
+C'est un algorithme de tri stable hybride qui combine les techniques de tri par insertion et de tri fusion.
+'''
