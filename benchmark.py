@@ -101,6 +101,7 @@ def quickSort(A, pivot):
 
 
 
+
 def callF(str, times, x, A, i):
             currTime = 0
             for t in range(curveAveraging):
@@ -209,19 +210,6 @@ def testFunction(str, rand):                  #test time taken by the algorithm 
 
 
 
-'''
-Not needed anymore
-def test(str, rand):        #test the algorithm defined by str in the average case (rand array) or worst case
-    times = []
-    moy = []
-    times, x = testFunction(str, rand)
-    for i in range(curveAveraging):             #smoothes the curve by averaging the time for each array size
-        moy, x = testFunction(str, rand)
-        times = [times[i] + moy[i] for i in range(len(moy))]
-    return [elem/curveAveraging for elem in times], x
-'''
-
-
 
 
 def polyCalc(x, times, win):
@@ -239,6 +227,7 @@ def infoPlot(win, st, legend):
     win.set_title('Execution time according to the size of the array of ' + st, fontsize=10)
     win.legend([st, legend], fontsize=10) # + str(poly[0]) + 'x^2' can be added to show the x^2 coefficient on each graph
 
+
     
 
 
@@ -248,15 +237,15 @@ curveAveraging = 5
 rand = False                 #rand set to False => worst case, to True => average case (random array)
 
 #print(sys.getrecursionlimit())
-#sys.setrecursionlimit(2000) #python default recursion limit is 1000, needed to be changed if arraySize too big > 1000
-
+#sys.setrecursionlimit(2000)    #python default recursion limit is 1000, needed to be changed if arraySize too big > 1000
 
 
 
 
 figure, ax = plt.subplots()         #algorithm comparaison figure
-fig, axs = plt.subplots(3, 2, sharey=True, constrained_layout=True)  # each subplot share the same y axis
+fig, axs = plt.subplots(3, 2, sharey=True, constrained_layout=True) #polynomial fit to see time constants
 figP, axsP = plt.subplots(2, 2, sharey=True)  #comparaison with same algorithm from python (numpy.sort)
+# subplots in axs and axsP share the same y axis
 
 fig.tight_layout()
 fig.subplots_adjust()
@@ -306,60 +295,60 @@ plt.show()
 
 
 '''
-Pour modifier les constantes d'entrées, voir ligne 219
+To change the input constants, see line 234
 
 
-Les complexité dans le pire cas et dans le cas moyens peuvent être vérifiés avec les observations des courbes
-pour des tailles suffisament grandes, comme O(n^2) pour le bubble/insertion sort etc
+The worst case and average case complexity can be checked with the observations of the curves
+for sufficiently large sizes, like O(n^2) for bubble/insertion sort etc.
 
-Les constantes de temps peuvent êtres vues avec l'approximation polynomiale
+The time constants can be seen with the polynomial approximation
 
-Les fonctions supportés par numpy.sort ont été comparées avec celles définies ci-dessus, et l'on remarque
-assez facilement que malgré que ce soit le même algorithme utilisé, celles de python sont plus optimisées
-
-
-- Insertion Sort :
-Pire des cas : O(n^2)
-Cas moyen : O(n^2)
-
-Efficace pour des tableau petits ou des tableau déjà partiellement triées. 
-Il devient inefficace pour des plus grandes tailles de tableau, en raison de sa complexité en n^2.
-Il est cependant plus efficace que le Bubble sort.
+The functions supported by numpy.sort have been compared with those defined above, and one can notice that
+that although the same algorithm is used, the python ones are more optimized
 
 
-- Bubble Sort :
-Pire des cas : O(n^2)
-Cas moyen : O(n^2)
+- Insertion Sort:
+Worst case: O(n^2)
+Average case: O(n^2)
 
-Comme le tri par insertion, c'est un algorithme simple et facile à implémenter,
-mais sa complexité quadratique en fait un algorithme très inefficace pour des tailles de tableau importantes. 
-
-
-- Merge Sort :
-Pire des cas : O(n*log(n))
-Cas moyen : O(n*log(n))
-
-Algorithme efficace en terme de temps d'execution pour trier des tableaux de grandes tailles.
-Il est cependant très mauvais en complexité spaciale car sa nature recursive lui demande de stocker plusieurs instances du tableau
-selon l'étape courante.
+Efficient for small arrays or arrays already partially sorted. 
+It becomes inefficient for larger array sizes, because of its complexity in n^2.
+It is however more efficient than Bubble sort.
 
 
-- Quick Sort :
-Pire des cas : O(n^2)
-Cas moyen : O(n*log(n))
+- Bubble Sort:
+Worst case: O(n^2)
+Average case: O(n^2)
 
-Utilisant Divide and conquer comme merge sort, c'est un algorithme efficace en temps dans le cas moyen. 
-De même, il est mauvais dans la complexité spaciale (légèrement meilleur)
-Malgré la complexité en O(n^2) dans le pire des cas, il devrait être en pratique souvent plus rapide que le merge sort pour le cas moyen.
-Dans le pire des cas, il reste plus rapide que le tri par insertion.
+Like insertion sort, this is a simple algorithm and easy to implement,
+but its quadratic complexity makes it a very inefficient algorithm for large array sizes. 
 
 
-- Timsort :
-Pire des cas : ~= O(n*log(n))
-Cas moyen : ~= O(n*log(n))
+- Merge Sort:
+Worst case: O(n*log(n))
+Average case: O(n*log(n))
 
-((ou respectivement 1.5nH+O(n) et O(n+nH) avec H est l'entropie des distributions de parties de tableaux)
-Voir plus dans l'étude 'On the Worst-Case Complexity of TimSort')
+Efficient algorithm in terms of execution time for sorting large arrays.
+However, it is very bad in terms of space complexity because its recursive nature requires it to store several instances of the array
+depending on the current step.
 
-C'est un algorithme de tri stable hybride qui combine les techniques de tri par insertion et de tri fusion.
+
+- Quick Sort:
+Worst case: O(n^2)
+Average case: O(n*log(n))
+
+Using Divide and conquer as merge sort, this is a time efficient algorithm in the average case. 
+Similarly, it is bad in space complexity (slightly better)
+Despite the complexity in O(n^2) in the worst case, it should in practice often be faster than merge sort for the average case.
+In the worst case, it is still faster than insertion sort.
+
+
+- Timsort:
+Worst case: ~= O(n*log(n))
+Average case : ~= O(n*log(n))
+
+( or respectively 1.5nH+O(n) and O(n+nH) with H is the entropy of the distributions of parts of tables)
+See more in the study 'On the Worst-Case Complexity of TimSort')
+
+This is a hybrid stable sorting algorithm that combines insertion sorting and fusion sorting techniques.
 '''
